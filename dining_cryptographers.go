@@ -133,7 +133,6 @@ func main() {
 	// Determine Payer either randomly or manually (index 0 = NSA)
 	var payer [4]bool = determine_Payer(get_Random())
 	//payer := [4]bool{true, false, false, false}
-	
 	// Assign Payer Role (Couldn't find of a more elegant way, sorry :-D )
 	c1.Paying(payer)
 	c2.Paying(payer)
