@@ -7,8 +7,6 @@ import (
 	"time"
 )
 
-
-
 /********** Define Objects **********/
 
 // Cryptographer Object
@@ -42,13 +40,6 @@ func (c *Cryptographer) Paying (payer [4]bool) {
 	if (payer[c.pos] == true) {
 	c.paying = true
 	}
-}
-
-// Restaurant Owner Object
-type Owner struct {
-	Next *Owner
-	secret float64
-	pos string
 }
 
 /********** Define Basic Functions **********/
@@ -86,14 +77,10 @@ func determine_Payer(randomness int) [4]bool {
 	return payer
 }
 
-func FloatToString(input_num float64) string {
-	return strconv.FormatFloat(input_num, 'f', 2, 64)
-}
-
-func Observer (result1 bool, result2 bool, result3 bool) {
+func Observer (comparison1 bool, comparison2 bool, comparison3 bool) {
 	var temp bool
-	temp = xor(result1, result2)
-	temp = xor(temp, result3)
+	temp = xor(comparison1, comparison2)
+	temp = xor(temp, comparison3)
 	fmt.Printf("The Observer says: ")
 	if temp {
 		fmt.Println("A Cryptographer paid!")
@@ -101,6 +88,21 @@ func Observer (result1 bool, result2 bool, result3 bool) {
 		fmt.Println("The NSA paid!")
 	}
 }
+
+// God-like cryptographer0 aka bruce_schneier
+func bruce_schneier (secret1 bool, secret2 bool, secret3 bool, comparison1 bool, comparison2 bool, comparison3 bool) {
+	fmt.Printf("Bruce Schneier aka Cryptographer0 says: ")
+	if Un_xor(secret1, secret3) == comparison1 {
+		fmt.Println("Cryptographer 1 paid!")
+	} else if Un_xor(secret2, secret1) == comparison2 {
+		fmt.Println("Cryptographer 2 paid!")
+	} else if Un_xor(secret3, secret2) == comparison3 {
+		fmt.Println("Cryptographer 3 paid!")
+	} else {
+		fmt.Println("The NSA paid!")
+	}
+}
+
 
 /********** Let's do it **********/
 func main() {
@@ -136,11 +138,13 @@ func main() {
 	c1.Paying(payer)
 	c2.Paying(payer)
 	c3.Paying(payer)
+	
 
 	// Flip the Coins in their own Goroutines
 	go c1.Flip(coin_channel1)
 	go c2.Flip(coin_channel2)
 	go c3.Flip(coin_channel3)
+	
 	
 	// Sleep to avoid race conditions
 	time.Sleep(time.Millisecond * 100)
@@ -152,9 +156,15 @@ func main() {
 	
 	// Sleep to avoid race conditions
 	time.Sleep(time.Millisecond * 100)
-
+	
 	// Let the Observer ovserve
 	go Observer(c1.comparison, c2.comparison, c3.comparison)
+	
+	// Sleep to avoid race conditions
+	time.Sleep(time.Millisecond * 100)
+	
+	// Go Bruce Schneider, Go!
+	go bruce_schneier(c1.secret, c2.secret, c3.secret, c1.comparison, c2.comparison, c3.comparison)
 	
 	// Sleep to avoid race conditions
 	time.Sleep(time.Millisecond * 100)
