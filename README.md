@@ -25,3 +25,11 @@ Implement the network of dining cryptographers problem with 3 cryptographers in 
 2. Dining Philosophers have been implemented in GO at http://f.souza.cc/2011/10/go-solution-for-dining-philosophers.html.
 
 3. The GO programming language has an excellent online tutorial at http://golang.org, and lots of references.
+
+# OUR Resources
+
+1. Presentation: https://docs.google.com/presentation/d/1GntpaTXxO7v-u6xC6Sia2kuoIMUGsJih9BamSHPj1qA/edit?usp=sharing
+
+2. Report: https://docs.google.com/document/d/1htn1ZCYJIxkSddsJuXxN2BF59a2-XK1VdKB_Ra9SLxI/edit?usp=sharing
+
+3. Diagrams: https://drive.google.com/file/d/0BzKKQaf6n1hHOUk3bXdrUEFtR28/view?usp=sharing
