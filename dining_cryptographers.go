@@ -12,6 +12,7 @@ var wg1 sync.WaitGroup
 var wg2 sync.WaitGroup
 var wg3 sync.WaitGroup
 var wg4 sync.WaitGroup
+var wg5 sync.WaitGroup
 
 /********** Define Objects **********/
 
@@ -27,21 +28,19 @@ type Cryptographer struct {
 // Cryptographers are gonna flipping coins
 func (c *Cryptographer) Flip (channel chan bool) {
 	c.secret = flip_coin(get_Random())
-	fmt.Println("Cryptographer " + strconv.Itoa(c.pos) + "'s coin flip:" + strconv.FormatBool(c.secret))
+	fmt.Println("Cryptographer " + strconv.Itoa(c.pos) + "'s coin flip: " + strconv.FormatBool(c.secret))
 	channel <- c.secret
 	close(channel)
 	wg1.Done()
 }
 
-// Cryptographers are gonna comparing coins and yell the result
+// Cryptographers are gonna comparing coins
 func (c *Cryptographer) Compare (channel chan bool) {
 	if c.paying {
 		c.comparison = Un_xor(c.secret, <-channel)
 	} else {
 		c.comparison = xor(c.secret, <-channel)
 	}
-	fmt.Println("Cryptographer " + strconv.Itoa(c.pos) + "'s comparison:" + strconv.FormatBool(c.comparison))
-
 	wg2.Done()
 }
 
@@ -87,23 +86,28 @@ func determine_Payer(randomness int) [4]bool {
 	return payer
 }
 
-func Observer (comparison1 bool, comparison2 bool, comparison3 bool) {
+func Observer (c Cryptographer) {
+	fmt.Println("Cryptographer " + strconv.Itoa(c.pos) + "'s comparison: " + strconv.FormatBool(c.comparison))
+	wg3.Done()
+}
+
+func RestaurantOwner (comparison1 bool, comparison2 bool, comparison3 bool) {
 	var temp bool
 	temp = xor(comparison1, comparison2)
 	temp = xor(temp, comparison3)
-	fmt.Printf("The Observer says: ")
+	fmt.Printf("\nThe Restaurant Owner concludes:\n")
 	if temp {
 		fmt.Println("A Cryptographer paid!")
 	} else {
 		fmt.Println("The NSA paid!")
 	}
 
-	wg3.Done()
+	wg4.Done()
 }
 
 // God-like cryptographer0 aka bruce_schneier
 func bruce_schneier (secret1 bool, secret2 bool, secret3 bool, comparison1 bool, comparison2 bool, comparison3 bool) {
-	fmt.Printf("Bruce Schneier aka Cryptographer0 says: ")
+	fmt.Printf("\nBruce Schneier aka Cryptographer0 knows:\n")
 	if Un_xor(secret1, secret3) == comparison1 {
 		fmt.Println("Cryptographer 1 paid!")
 	} else if Un_xor(secret2, secret1) == comparison2 {
@@ -114,7 +118,7 @@ func bruce_schneier (secret1 bool, secret2 bool, secret3 bool, comparison1 bool,
 		fmt.Println("The NSA paid!")
 	}
 
-	wg4.Done()
+	wg5.Done()
 }
 
 
@@ -148,69 +152,60 @@ func main() {
 	var payer [4]bool = determine_Payer(get_Random())
 	//payer := [4]bool{true, false, false, false}
 
-	// Assign Payer Role (Couldn't find of a more elegant way, sorry :-D )
+	// Assign Payer Role
 	c1.Paying(payer)
 	c2.Paying(payer)
 	c3.Paying(payer)
 
 
 	// Flip the Coins in their own Goroutines
+	
+	fmt.Println("\n########################################################")
+	fmt.Println("Show coin flipping to check results:")
+	fmt.Println("(this is not visible to Cryptographers and Restaurant Owner)")
 	wg1.Add(3)
 	go c1.Flip(coin_channel1)
 	go c2.Flip(coin_channel2)
 	go c3.Flip(coin_channel3)
 	wg1.Wait()
+	fmt.Println("########################################################")
 
 	// Sleep to avoid race conditions
 	//time.Sleep(time.Millisecond * 100)
 
-	// Compare the neighboured coins and let the Observer observe the Cryptographer's yelling their comparisons
+	// Compare the neighboured coins
 	wg2.Add(3)
-	go c3.Compare(coin_channel2)
-	go c2.Compare(coin_channel1)
 	go c1.Compare(coin_channel3)
+	go c2.Compare(coin_channel1)
+	go c3.Compare(coin_channel2)
 	wg2.Wait()
 
 	// Sleep to avoid race conditions
 	//time.Sleep(time.Millisecond * 100)
 
-	// Let the Observer ovserve
-	wg3.Add(1)
-	go Observer(c1.comparison, c2.comparison, c3.comparison)
+	// Let the Observer observe
+	fmt.Println("\nThe Observer observed:")
+	fmt.Println("(difference = true, same results = false; odd number of differences = cryptographer paid, even number = NSA paid)")
+	wg3.Add(3)
+	go Observer(c1)
+	go Observer(c2)
+	go Observer(c3)
 	wg3.Wait()
-
-	// Sleep to avoid race conditions
-	//time.Sleep(time.Millisecond * 100)
-
-	// Go Bruce Schneider, Go!
+	
+	// Let the Restaurant Owner conclude
 	wg4.Add(1)
-	go bruce_schneier(c1.secret, c2.secret, c3.secret, c1.comparison, c2.comparison, c3.comparison)
+	go RestaurantOwner(c1.comparison, c2.comparison, c3.comparison)
 	wg4.Wait()
 
 	// Sleep to avoid race conditions
 	//time.Sleep(time.Millisecond * 100)
 
-/********** DEBUG **********/
+	// Go Bruce Schneier aka Cryptographer0, Go!
+	wg5.Add(1)
+	go bruce_schneier(c1.secret, c2.secret, c3.secret, c1.comparison, c2.comparison, c3.comparison)
+	wg5.Wait()
 
-	/*
-	// check payer array
-	for i:=1; i<4; i++{
-		fmt.Println(strconv.FormatBool(payer[i]))
-	}
-
-	// Sleep in order to see result of Goroutines before main exits
-	time.Sleep(time.Millisecond * 100)
-
-	fmt.Println(strconv.FormatBool(c1.paying))
-	fmt.Println(strconv.FormatBool(c2.paying))
-	fmt.Println(strconv.FormatBool(c3.paying))
-
-
-	if flip_coin(get_Random()) {
-		fmt.Println("TRUE")
-	} else {
-		fmt.Println("FALSE")
-	}
-	*/
+	// Sleep to avoid race conditions
+	//time.Sleep(time.Millisecond * 100)
 
 }
