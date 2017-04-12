@@ -18,7 +18,6 @@ var wg5 sync.WaitGroup
 
 // Cryptographer Object
 type Cryptographer struct {
-	Next *Cryptographer
 	secret bool // Result of the flip coin
 	paying bool // Is the cryptographer paying?
 	pos int // Position at table
